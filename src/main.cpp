@@ -7,10 +7,13 @@
 #define LED 2
 #define SWITCH 0
 ESP8266WebServer server(80);
+uint8_t macAddr[6];
 
 void handleRoot()
 {
-  server.send(200, "text/plain", "Hello From ESP8266!");
+  char mac[20];
+  sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x\n", macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
+  server.send(200, "text/plain", mac);
 }
 
 void handleSwitch()
@@ -41,6 +44,7 @@ void setup()
   pinMode(SWITCH, OUTPUT);
   Serial.begin(115200);
   WiFi.begin("bcs", "28911603");
+  WiFi.macAddress(macAddr);
   uint32_t notConnectedCounter = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
