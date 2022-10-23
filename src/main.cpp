@@ -1,11 +1,21 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+
+ESP8266WebServer server(80);
+
+void handleRoot() {
+  server.send(200, "text/plain", "Hello From ESP8266 !");
+}
+
+void handleNotFound() {
+  server.send(404, "text/plain", "File Not Found");
+}
+
 void setup() {
   Serial.begin(115200);
-  /**
-   * Connet to Wifi
-   */
   WiFi.begin("bcs", "28911603");
   uint32_t notConnectedCounter = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -19,13 +29,21 @@ void setup() {
   }
   Serial.print("Wifi connected, IP address: ");
   Serial.println(WiFi.localIP());
-  /**
-   * Enable OTA update
-   */
-  ArduinoOTA.setHostname("esp");
+
   ArduinoOTA.begin();
+
+  //ping esp.local
+  if (MDNS.begin("esp")) {
+    Serial.println("MDNS responder started");
+  }
+
+  //curl http://esp.local/
+  server.on("/", handleRoot);
+  server.onNotFound(handleNotFound);
+  server.begin();
 }
+
 void loop() {
-  // Check for over the air update request and (if present) flash it
   ArduinoOTA.handle();
+  server.handleClient();
 }
