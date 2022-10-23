@@ -10,18 +10,24 @@ ESP8266WebServer server(80);
 
 void handleRoot()
 {
+  server.send(200, "text/plain", "Hello From ESP8266!");
+}
+
+void handleSwitch()
+{
   static int i = 0;
   if (i++ % 2 == 0)
   {
     digitalWrite(LED, LOW);
     digitalWrite(SWITCH, LOW);
+    server.send(200, "text/plain", "Close");
   }
   else
   {
     digitalWrite(LED, HIGH);
     digitalWrite(SWITCH, HIGH);
+    server.send(200, "text/plain", "Open");
   }
-  server.send(200, "text/plain", "Hello From ESP8266 !");
 }
 
 void handleNotFound()
@@ -58,8 +64,9 @@ void setup()
     Serial.println("MDNS responder started");
   }
 
-  // curl http://esp.local/
+  // curl http://esp.local/switch
   server.on("/", handleRoot);
+  server.on("/switch", handleSwitch);
   server.onNotFound(handleNotFound);
   server.begin();
 }
