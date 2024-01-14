@@ -3,13 +3,30 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <PubSubClient.h>
 
-char Version[] = "7.1.14";
+const char *Version = "7.1.14";
+
+const char *mqtt_broker = "broker.hivemq.com";
+const char *topic = "yhattm/iot";
+const int mqtt_port = 1883;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 #define LED 2
 #define SWITCH 0
 ESP8266WebServer server(80);
 uint8_t macAddr[6];
+
+void openDoor()
+{
+  digitalWrite(LED, LOW);
+  digitalWrite(SWITCH, LOW);
+  delay(500);
+  digitalWrite(LED, HIGH);
+  digitalWrite(SWITCH, HIGH);
+}
 
 void handleRoot()
 {
@@ -20,19 +37,8 @@ void handleRoot()
 
 void handleSwitch()
 {
-  static int i = 0;
-  if (i++ % 2 == 0)
-  {
-    digitalWrite(LED, LOW);
-    digitalWrite(SWITCH, LOW);
-    server.send(200, "text/plain", "Close");
-  }
-  else
-  {
-    digitalWrite(LED, HIGH);
-    digitalWrite(SWITCH, HIGH);
-    server.send(200, "text/plain", "Open");
-  }
+  openDoor();
+  server.send(200, "text/plain", "Open");
 }
 
 void handleVersion()
@@ -43,6 +49,28 @@ void handleVersion()
 void handleNotFound()
 {
   server.send(404, "text/plain", "File Not Found");
+}
+
+void reconnect()
+{
+  String client_id = "esp8266-client-";
+  client_id += String(random(0xffff), HEX);
+  if (client.connect(client_id.c_str()))
+  {
+    client.subscribe(topic);
+  }
+}
+
+void callback(char *topic, byte *payload, unsigned int length)
+{
+  Serial.println(topic);
+  Serial.print("Message: ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+  openDoor();
 }
 
 void setup()
@@ -77,14 +105,21 @@ void setup()
 
   // curl http://esp.local/switch
   server.on("/", handleRoot);
-  server.on("/switch", handleSwitch);
+  server.on("/open", handleSwitch);
   server.on("/version", handleVersion);
   server.onNotFound(handleNotFound);
   server.begin();
+
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
 }
 
 void loop()
 {
   ArduinoOTA.handle();
   server.handleClient();
+  // if (!client.connected()) {
+  //   reconnect();
+  // }
+  client.loop();
 }
