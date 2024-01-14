@@ -4,6 +4,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
+char Version[] = "7.1.14";
+
 #define LED 2
 #define SWITCH 0
 ESP8266WebServer server(80);
@@ -31,6 +33,11 @@ void handleSwitch()
     digitalWrite(SWITCH, HIGH);
     server.send(200, "text/plain", "Open");
   }
+}
+
+void handleVersion()
+{
+  server.send(200, "text/plain", Version);
 }
 
 void handleNotFound()
@@ -71,6 +78,7 @@ void setup()
   // curl http://esp.local/switch
   server.on("/", handleRoot);
   server.on("/switch", handleSwitch);
+  server.on("/version", handleVersion);
   server.onNotFound(handleNotFound);
   server.begin();
 }
