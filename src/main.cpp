@@ -118,8 +118,8 @@ void loop()
 {
   ArduinoOTA.handle();
   server.handleClient();
-  // if (!client.connected()) {
-  //   reconnect();
-  // }
+  if (!client.connected()) {
+    reconnect();
+  }
   client.loop();
 }
