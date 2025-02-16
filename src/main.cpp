@@ -5,7 +5,7 @@
 #include <ESP8266mDNS.h>
 #include <PubSubClient.h>
 
-const char *Version = "7.1.14";
+const char *Version = "8.2.15";
 
 const char *mqtt_broker = "broker.hivemq.com";
 const char *topic = "yhattm/iot";
@@ -21,11 +21,11 @@ uint8_t macAddr[6];
 
 void openDoor()
 {
-  digitalWrite(LED, LOW);
-  digitalWrite(SWITCH, LOW);
-  delay(500);
   digitalWrite(LED, HIGH);
   digitalWrite(SWITCH, HIGH);
+  delay(500);
+  digitalWrite(LED, LOW);
+  digitalWrite(SWITCH, LOW);
 }
 
 void handleRoot()
@@ -118,7 +118,8 @@ void loop()
 {
   ArduinoOTA.handle();
   server.handleClient();
-  if (!client.connected()) {
+  if (!client.connected())
+  {
     reconnect();
   }
   client.loop();
