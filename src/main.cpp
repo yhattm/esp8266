@@ -8,7 +8,7 @@
 const char *Version = "8.2.15";
 
 const char *mqtt_broker = "broker.hivemq.com";
-const char *topic = "yhattm/iot";
+const char *topic = "weizhen";
 const int mqtt_port = 1883;
 
 WiFiClient espClient;
